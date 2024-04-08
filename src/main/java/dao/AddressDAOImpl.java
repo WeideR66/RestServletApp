@@ -1,0 +1,34 @@
+package dao;
+
+import entities.Address;
+import entities.User;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class AddressDAOImpl implements AddressDAO {
+    @Override
+    public void createAddress(User user, Statement statement) throws SQLException {
+        Address address = user.getAddress();
+        String sql = String.format("insert into addresses (country, city, street, number, user_id)" +
+                "values ('%s', '%s', '%s', %d, %d)",
+                address.getCountry(),
+                address.getCity(),
+                address.getStreet(),
+                address.getNum(),
+                user.getId());
+
+        int affectedRow = statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
+        if (affectedRow == 0) {
+            throw new SQLException("Failed Address creation.");
+        }
+
+        ResultSet addressID = statement.getGeneratedKeys();
+        if (addressID.next()) {
+            address.setId(addressID.getLong("id"));
+        } else {
+            throw new SQLException("No Address ID obtained.");
+        }
+    }
+}
