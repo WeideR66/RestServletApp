@@ -8,7 +8,6 @@ import entities.User;
 import org.junit.*;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
@@ -19,6 +18,7 @@ public class UserDAOImplTest {
 
     private final DBConnection dbConnection = DBConnectionImpl.createFactory();
     private final UserDAO userDAO = new UserDAOImpl();
+    private User user;
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -34,9 +34,9 @@ public class UserDAOImplTest {
         }
     }
 
-    @Test
-    public void whenUseCreateUserThenUserAddInDB() {
-        User user = new User(
+    @Before
+    public void setUpLocal() throws Exception {
+        user = new User(
                 null,
                 "Вася",
                 "Пупкин",
@@ -47,36 +47,61 @@ public class UserDAOImplTest {
                         new BankAccount(null, "Счет2", 1234567)
                 )
         );
-        User expectedUser = userDAO.createUser(user);
+    }
 
-        try (
-                Connection connection = dbConnection.getConnection();
-                Statement statement = connection.createStatement();
-        ) {
-            String sql = String.format("select u.id, u.name, u.surname, u.age, a.country, a.city, a.street, a.number, b.accountname, b.cash " +
-                            "from users as u " +
-                            "inner join addresses as a on u.id = a.user_id " +
-                            "inner join bankAccounts as b on u.id = b.user_id " +
-                            "where u.id = %d",
-                    user.getId());
+    @Test
+    public void whenUseCreateUserThenUserAddInDB() {
+        userDAO.createUser(user);
 
-            ResultSet result = statement.executeQuery(sql);
-            result.next();
-            assertEquals(expectedUser.getId(), Long.valueOf(result.getLong("id")));
-            assertEquals(expectedUser.getName(), result.getString("name"));
-            assertEquals(expectedUser.getSurname(), result.getString("surname"));
-            assertEquals(expectedUser.getAge(), Integer.valueOf(result.getInt("age")));
-            assertEquals(expectedUser.getAddress().getCountry(), result.getString("country"));
-            assertEquals(expectedUser.getAddress().getCity(), result.getString("city"));
-            assertEquals(expectedUser.getAddress().getStreet(), result.getString("street"));
-            assertEquals(expectedUser.getAddress().getNum(), Integer.valueOf(result.getInt("number")));
-            assertEquals(expectedUser.getBankAccounts().getFirst().getAccountName(), result.getString("accountname"));
-            assertEquals(expectedUser.getBankAccounts().getFirst().getCash(), Integer.valueOf(result.getInt("cash")));
-            System.out.println(user);
+        User actualUser = userDAO.getUserById(user.getId());
 
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        assertEquals(user, actualUser);
+    }
+
+    @Test
+    public void returnNullIfUserDoesNotExist() {
+        User user = userDAO.getUserById(31L);
+        assertNull(user);
+    }
+
+    @Test
+    public void whenChangeUserFieldAndExecuteUpdateUserDataInDBChange() {
+        userDAO.createUser(user);
+        user.setName("Андрей");
+        user.getAddress().setStreet("Заборная");
+        user.getBankAccounts().getFirst().setAccountName("УльтраСчет");
+
+        userDAO.updateUser(user);
+        User updatedUser = userDAO.getUserById(user.getId());
+
+        assertEquals(user, updatedUser);
+    }
+
+    @Test
+    public void whenUserIsNotChangedThenUpdateUserDoNotChangeValuesInDB() {
+        userDAO.createUser(user);
+
+        User pseudoUpdatedUser = userDAO.updateUser(user);
+
+        assertEquals(user, pseudoUpdatedUser);
+    }
+
+    @Test
+    public void whenUserIdIsNullTHenUpdateUserReturnNull() {
+        User updatedUser = userDAO.updateUser(user);
+
+        assertNull(updatedUser);
+    }
+
+    @Test
+    public void ifUserInDBTHenDeleteUserWillRemoveUserFromDB() {
+        userDAO.createUser(user);
+
+        assertEquals(userDAO.getUserById(user.getId()), user);
+
+        userDAO.deleteUser(user.getId());
+
+        assertNull(userDAO.getUserById(user.getId()));
     }
 
     @AfterClass
@@ -115,7 +140,7 @@ public class UserDAOImplTest {
                 "street varchar(40)," +
                 "number integer," +
                 "user_id bigint," +
-                "foreign key (user_id) references users (id))");
+                "foreign key (user_id) references users (id) on delete cascade)");
         System.out.println("Table Address created");
     }
 
@@ -130,7 +155,7 @@ public class UserDAOImplTest {
                 "accountName varchar(40)," +
                 "cash integer," +
                 "user_id bigint," +
-                "foreign key (user_id) references users(id))");
+                "foreign key (user_id) references users(id) on delete cascade)");
         System.out.println("Table bankAccounts created");
     }
 

@@ -3,6 +3,7 @@ package dao;
 import dbconn.DBConnection;
 import dbconn.DBConnectionImpl;
 import entities.User;
+import mapper.UserMapper;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -28,7 +29,7 @@ public class UserDAOImpl implements UserDAO {
                 Statement statement = connection.createStatement();
         ) {
             String sql = String.format("insert into users (name, surname, age)" +
-                    "values ('%s', '%s', '%d')",
+                            "values ('%s', '%s', '%d')",
                     user.getName(),
                     user.getSurname(),
                     user.getAge());
@@ -38,13 +39,13 @@ public class UserDAOImpl implements UserDAO {
                 throw new SQLException("Failed User creation.");
             }
 
-            ResultSet userID = statement.getGeneratedKeys();
-            if (userID.next()) {
-                user.setId(userID.getLong("id"));
-            } else {
-                throw new SQLException("No User ID obtained.");
+            try (ResultSet userID = statement.getGeneratedKeys()) {
+                if (userID.next()) {
+                    user.setId(userID.getLong("id"));
+                } else {
+                    throw new SQLException("No User ID obtained.");
+                }
             }
-
             addressDAO.createAddress(user, statement);
 
             bankAccountDAO.createBankAccounts(user, statement);
@@ -57,16 +58,68 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public User getUserById(long id) {
-        return null;
+        try (
+                Connection connection = dbConnection.getConnection();
+                Statement statement = connection.createStatement();
+        ) {
+            String sql = String.format("select u.id, u.name, u.surname, u.age, a.id as address_id, a.country, a.city, a.street, a.number, b.id as bankaccount_id, b.accountname, b.cash " +
+                            "from users as u " +
+                            "inner join addresses as a on u.id = a.user_id " +
+                            "inner join bankAccounts as b on u.id = b.user_id " +
+                            "where u.id = %d",
+                    id);
+
+            try (ResultSet result = statement.executeQuery(sql)) {
+                return UserMapper.getUserObjectFromResultSet(result);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public User updateUser(long id, User user) {
-        return null;
+    public User updateUser(User user) {
+        if (user.getId() == null) {
+            return null;
+        }
+        try (
+                Connection connection = dbConnection.getConnection();
+                Statement statement = connection.createStatement();
+        ) {
+            String sql = String.format(
+                    "update users " +
+                            "set name = '%s'," +
+                            "surname = '%s'," +
+                            "age = %d " +
+                            "where id = %d",
+                    user.getName(),
+                    user.getSurname(),
+                    user.getAge(),
+                    user.getId()
+            );
+
+            statement.execute(sql);
+
+            addressDAO.updateAddress(user, statement);
+
+            bankAccountDAO.updateBankAccounts(user, statement);
+
+            return user;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public boolean deleteUser(long id) {
-        return false;
+    public void deleteUser(long id) {
+        try (
+                Connection connection = dbConnection.getConnection();
+                Statement statement = connection.createStatement();
+        ) {
+            String sql = String.format("delete from users where id = %d", id);
+            statement.execute(sql);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

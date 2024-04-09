@@ -188,7 +188,7 @@ public class UserEntityTest {
             assertEquals("Россия", user.getAddress().getCountry());
             assertEquals("Москва", user.getAddress().getCity());
             assertEquals("Пушкина", user.getAddress().getStreet());
-            assertEquals(Integer.valueOf(123), user.getAddress().getNum());
+            assertEquals(Integer.valueOf(123), user.getAddress().getNumber());
 
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

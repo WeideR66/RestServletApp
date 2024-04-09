@@ -12,11 +12,11 @@ public class AddressDAOImpl implements AddressDAO {
     public void createAddress(User user, Statement statement) throws SQLException {
         Address address = user.getAddress();
         String sql = String.format("insert into addresses (country, city, street, number, user_id)" +
-                "values ('%s', '%s', '%s', %d, %d)",
+                        "values ('%s', '%s', '%s', %d, %d)",
                 address.getCountry(),
                 address.getCity(),
                 address.getStreet(),
-                address.getNum(),
+                address.getNumber(),
                 user.getId());
 
         int affectedRow = statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
@@ -24,11 +24,30 @@ public class AddressDAOImpl implements AddressDAO {
             throw new SQLException("Failed Address creation.");
         }
 
-        ResultSet addressID = statement.getGeneratedKeys();
-        if (addressID.next()) {
-            address.setId(addressID.getLong("id"));
-        } else {
-            throw new SQLException("No Address ID obtained.");
+        try (ResultSet addressID = statement.getGeneratedKeys()) {
+            if (addressID.next()) {
+                address.setId(addressID.getLong("id"));
+            } else {
+                throw new SQLException("No Address ID obtained.");
+            }
         }
+    }
+
+    @Override
+    public void updateAddress(User user, Statement statement) throws SQLException {
+        Address address = user.getAddress();
+        String sql = String.format("update addresses " +
+                        "set country = '%s'," +
+                        "city = '%s'," +
+                        "street = '%s'," +
+                        "number = %d " +
+                        "where user_id = %d",
+                address.getCountry(),
+                address.getCity(),
+                address.getStreet(),
+                address.getNumber(),
+                user.getId()
+        );
+        statement.execute(sql);
     }
 }

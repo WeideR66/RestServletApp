@@ -15,7 +15,7 @@ public class AddressEntityTest {
         assertNull(address.getCountry());
         assertNull(address.getCity());
         assertNull(address.getStreet());
-        assertNull(address.getNum());
+        assertNull(address.getNumber());
     }
 
     @Test
@@ -32,12 +32,12 @@ public class AddressEntityTest {
         assertNotNull(address.getCountry());
         assertNotNull(address.getCity());
         assertNotNull(address.getStreet());
-        assertNotNull(address.getNum());
+        assertNotNull(address.getNumber());
 
         assertEquals(Long.valueOf(123L), address.getId());
         assertEquals("Россия", address.getCountry());
         assertEquals("Москва", address.getCity());
         assertEquals("Пушкина", address.getStreet());
-        assertEquals(Integer.valueOf(123), address.getNum());
+        assertEquals(Integer.valueOf(123), address.getNumber());
     }
 }

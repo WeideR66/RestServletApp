@@ -21,12 +21,29 @@ public class BankAccountDAOImpl implements BankAccountDAO {
                 throw new SQLException("Failed BankAccount creation.");
             }
 
-            ResultSet accountID = statement.getGeneratedKeys();
-            if (accountID.next()) {
-                account.setId(accountID.getLong("id"));
-            } else {
-                throw new SQLException("No BankAccount ID obtained.");
+            try (ResultSet accountID = statement.getGeneratedKeys()) {
+                if (accountID.next()) {
+                    account.setId(accountID.getLong("id"));
+                } else {
+                    throw new SQLException("No BankAccount ID obtained.");
+                }
             }
+        }
+    }
+
+    @Override
+    public void updateBankAccounts(User user, Statement statement) throws SQLException {
+        String sql = "update bankaccounts " +
+                "set accountname = '%s'," +
+                "cash = %d " +
+                "where user_id = %d and id = %d";
+        for (BankAccount account : user.getBankAccounts()) {
+            statement.execute(sql.formatted(
+                    account.getAccountName(),
+                    account.getCash(),
+                    user.getId(),
+                    account.getId()
+            ));
         }
     }
 }
