@@ -64,8 +64,8 @@ public class UserDAOImpl implements UserDAO {
         ) {
             String sql = String.format("select u.id, u.name, u.surname, u.age, a.id as address_id, a.country, a.city, a.street, a.number, b.id as bankaccount_id, b.accountname, b.cash " +
                             "from users as u " +
-                            "inner join addresses as a on u.id = a.user_id " +
-                            "inner join bankAccounts as b on u.id = b.user_id " +
+                            "left join addresses as a on u.id = a.user_id " +
+                            "left join bankAccounts as b on u.id = b.user_id " +
                             "where u.id = %d",
                     id);
 
@@ -111,13 +111,17 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    public void deleteUser(long id) {
+    public boolean deleteUser(long id) {
         try (
                 Connection connection = dbConnection.getConnection();
                 Statement statement = connection.createStatement();
         ) {
+            if (getUserById(id) == null) {
+                return false;
+            }
             String sql = String.format("delete from users where id = %d", id);
             statement.execute(sql);
+            return true;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

@@ -12,6 +12,9 @@ public class BankAccountDAOImpl implements BankAccountDAO {
     public void createBankAccounts(User user, Statement statement) throws SQLException {
         String sql = "insert into bankAccounts (accountName, cash, user_id)" +
                 "values ('%s', %d, %d)";
+        if (user.getBankAccounts() == null) {
+            return;
+        }
         for (BankAccount account : user.getBankAccounts()) {
             int affectedRow = statement.executeUpdate(
                     sql.formatted(account.getAccountName(), account.getCash(), user.getId()),

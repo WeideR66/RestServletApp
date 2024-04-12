@@ -2,6 +2,7 @@ package dao;
 
 import dbconn.DBConnection;
 import dbconn.DBConnectionImpl;
+import dbconn.TableCreation;
 import entities.Address;
 import entities.BankAccount;
 import entities.User;
@@ -26,9 +27,9 @@ public class UserDAOImplTest {
                 Connection connection = DBConnectionImpl.createFactory().getConnection();
                 Statement statement = connection.createStatement();
         ) {
-            createUserTable(statement);
-            createAddressTable(statement);
-            createBankAccountsTable(statement);
+            TableCreation.createUserTable(statement);
+            TableCreation.createAddressTable(statement);
+            TableCreation.createBankAccountsTable(statement);
         } catch (SQLException e) {
             throw new SQLException(e);
         }
@@ -110,57 +111,11 @@ public class UserDAOImplTest {
                 Connection connection = DBConnectionImpl.createFactory().getConnection();
                 Statement statement = connection.createStatement();
         ) {
-            dropBankAccountsTable(statement);
-            dropAddressTable(statement);
-            dropUserTable(statement);
+            TableCreation.dropBankAccountsTable(statement);
+            TableCreation.dropAddressTable(statement);
+            TableCreation.dropUserTable(statement);
         } catch (SQLException e) {
             throw new SQLException(e);
         }
-    }
-
-    private static void createUserTable(Statement statement) throws SQLException {
-        statement.execute("create table if not exists users (" +
-                "id bigserial primary key," +
-                "name varchar(40)," +
-                "surname varchar(40)," +
-                "age integer)");
-        System.out.println("Table Users crated");
-    }
-
-    private static void dropUserTable(Statement statement) throws SQLException {
-        statement.execute("drop table if exists users");
-        System.out.println("Table Users dropped");
-    }
-
-    private static void createAddressTable(Statement statement) throws SQLException {
-        statement.execute("create table if not exists addresses (" +
-                "id bigserial primary key," +
-                "country varchar(40)," +
-                "city varchar(40)," +
-                "street varchar(40)," +
-                "number integer," +
-                "user_id bigint," +
-                "foreign key (user_id) references users (id) on delete cascade)");
-        System.out.println("Table Address created");
-    }
-
-    private static void dropAddressTable(Statement statement) throws SQLException {
-        statement.execute("drop table if exists addresses");
-        System.out.println("Table Address dropped");
-    }
-
-    private static void createBankAccountsTable(Statement statement) throws SQLException {
-        statement.execute("create table if not exists bankAccounts (" +
-                "id bigserial primary key," +
-                "accountName varchar(40)," +
-                "cash integer," +
-                "user_id bigint," +
-                "foreign key (user_id) references users(id) on delete cascade)");
-        System.out.println("Table bankAccounts created");
-    }
-
-    private static void dropBankAccountsTable(Statement statement) throws SQLException {
-        statement.execute("drop table if exists bankAccounts");
-        System.out.println("Table bankAccounts dropped");
     }
 }

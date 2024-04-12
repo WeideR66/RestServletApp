@@ -6,6 +6,9 @@ import entities.Address;
 import entities.BankAccount;
 import entities.User;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -28,28 +31,30 @@ public class UserMapper {
                         resultSet.getInt("number")
                 ));
             }
-            user.addBankAccount(new BankAccount(
-                    resultSet.getLong("bankaccount_id"),
-                    resultSet.getString("accountname"),
-                    resultSet.getInt("cash")
-            ));
+            if (resultSet.getLong("bankaccount_id") != 0) {
+                user.addBankAccount(new BankAccount(
+                        resultSet.getLong("bankaccount_id"),
+                        resultSet.getString("accountname"),
+                        resultSet.getInt("cash")
+                ));
+            }
         }
         return (user.getId() == null) ? null : user;
     }
 
-    public static User getUserObjectFromJSON(String json) {
-        try {
-            return jsonMapper.readValue(json, User.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+    public static User getUserObjectFromJSON(String json) throws JsonProcessingException {
+        return jsonMapper.readValue(json, User.class);
     }
 
-    public static String getJSONFromUserObject(User user) {
-        try {
-            return jsonMapper.writeValueAsString(user);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+    public static User getUserObjectFromJSON(BufferedReader reader) throws IOException {
+        return jsonMapper.readValue(reader, User.class);
+    }
+
+    public static String getJSONFromUserObject(User user) throws JsonProcessingException {
+        return jsonMapper.writeValueAsString(user);
+    }
+
+    public static void writeJSONFromUserObject(PrintWriter printWriter, User user) throws IOException {
+        jsonMapper.writeValue(printWriter, user);
     }
 }

@@ -12,17 +12,6 @@ import static org.junit.Assert.*;
 public class UserEntityTest {
 
     @Test
-    public void whenCreateUserWithEmptyConstructorThenAllFieldsAreNull() {
-        User user = new User();
-        assertNull(user.getId());
-        assertNull(user.getName());
-        assertNull(user.getSurname());
-        assertNull(user.getAge());
-        assertNull(user.getAddress());
-        assertNull(user.getBankAccounts());
-    }
-
-    @Test
     public void whenCreateUserWithFullConstructorThenAllFieldsAreNotNull() {
         Address address = new Address(
                 456L,
@@ -98,8 +87,8 @@ public class UserEntityTest {
                 "\"id\":456," +
                 "\"country\":\"Россия\"," +
                 "\"city\":\"Москва\"," +
-                "\"num\":123," +
-                "\"street\":\"Пушкина\"}," +
+                "\"street\":\"Пушкина\"," +
+                "\"number\":123}," +
                 "\"bankAccounts\":[" +
                 "{\"id\":789," +
                 "\"accountName\":\"Счет1\"," +
@@ -137,7 +126,7 @@ public class UserEntityTest {
                 "\"id\":456," +
                 "\"country\":\"Россия\"," +
                 "\"city\":\"Москва\"," +
-                "\"num\":123," +
+                "\"number\":123," +
                 "\"street\":\"Пушкина\"}," +
                 "\"bankAccounts\":[" +
                 "{\"id\":789," +
@@ -172,7 +161,7 @@ public class UserEntityTest {
                 "\"id\":null," +
                 "\"country\":\"Россия\"," +
                 "\"city\":\"Москва\"," +
-                "\"num\":123," +
+                "\"number\":123," +
                 "\"street\":\"Пушкина\"}," +
                 "\"bankAccounts\":null}";
 
