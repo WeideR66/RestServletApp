@@ -6,14 +6,6 @@ import static org.junit.Assert.*;
 
 public class BankAccountEntityTest {
 
-    @Test
-    public void whenCreateWithEmptyConstructorThenAllFieldsAreNull() {
-        BankAccount account = new BankAccount();
-
-        assertNull(account.getId());
-        assertNull(account.getAccountName());
-        assertNull(account.getCash());
-    }
 
     @Test
     public void whenCreateAddressWithFullConstructorThenAllFieldsAreNotNull() {
@@ -30,5 +22,10 @@ public class BankAccountEntityTest {
         assertEquals(Long.valueOf(123L), account.getId());
         assertEquals("Счет№1", account.getAccountName());
         assertEquals(Integer.valueOf(12345), account.getCash());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void whenNonNullFieldIsNullThenNullPointerExceptionThrow() {
+        new BankAccount(null, null, 1452141);
     }
 }

@@ -2,9 +2,11 @@ package dao;
 
 import entities.User;
 
+import java.sql.SQLException;
+
 public interface UserDAO {
-    User createUser(User user);
-    User getUserById(long id);
-    User updateUser(User user);
-    boolean deleteUser(long id);
+    void createUser(User user) throws SQLException;
+    User getUserById(long id) throws SQLException;
+    User updateUser(User user) throws SQLException;
+    boolean deleteUser(long id) throws SQLException;
 }

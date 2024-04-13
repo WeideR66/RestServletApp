@@ -2,6 +2,7 @@ package entities;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -10,6 +11,12 @@ import java.util.List;
 import static org.junit.Assert.*;
 
 public class UserEntityTest {
+
+    private ObjectMapper mapper;
+    @Before
+    public void setUp() throws Exception {
+        this.mapper = new ObjectMapper();
+    }
 
     @Test
     public void whenCreateUserWithFullConstructorThenAllFieldsAreNotNull() {
@@ -57,8 +64,20 @@ public class UserEntityTest {
         assertEquals(bankAccounts, user.getBankAccounts());
     }
 
+    @Test(expected = NullPointerException.class)
+    public void whenNonNullableFieldIsNullThenNullPointerExceptionThrow() {
+        new User(
+                null,
+                "Вася",
+                "Пупкин",
+                null,
+                null,
+                null
+        );
+    }
+
     @Test
-    public void userObjectCanSerializeToJSONByJacksonObjectMapper() {
+    public void userObjectCanSerializeToJSONByJacksonObjectMapper() throws JsonProcessingException {
         User user = new User(
                 123L,
                 "Вася",
@@ -77,7 +96,6 @@ public class UserEntityTest {
                 )
         );
 
-        ObjectMapper mapper = new ObjectMapper();
         String expectedJSON = "{" +
                 "\"id\":123," +
                 "\"name\":\"Вася\"," +
@@ -96,16 +114,11 @@ public class UserEntityTest {
                 "\"id\":654," +
                 "\"accountName\":\"Счет2\"," +
                 "\"cash\":1234567}]}";
-        try {
-            assertEquals(expectedJSON, mapper.writeValueAsString(user));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        assertEquals(expectedJSON, mapper.writeValueAsString(user));
     }
 
     @Test
     public void userJSONCanBeDeserializedByJacksonObjectMapperToUserObject() {
-        ObjectMapper mapper = new ObjectMapper();
         Address address = new Address(
                 456L,
                 "Россия",
@@ -150,8 +163,7 @@ public class UserEntityTest {
     }
 
     @Test
-    public void notFullJSONUserCanBeDeserializedByJacksonObjectMapperToUserObject() {
-        ObjectMapper mapper = new ObjectMapper();
+    public void JSONUserWithNullableFieldsCanBeDeserializedByJacksonObjectMapperToUserObject() {
         String expectedJSON = "{" +
                 "\"id\":null," +
                 "\"name\":\"Вася\"," +
@@ -182,5 +194,27 @@ public class UserEntityTest {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Test(expected = JsonProcessingException.class)
+    public void whenNonNullFieldIsNullAndTryDeserializeWrongJSONThenJacksonProcessingExceptionThrow() throws JsonProcessingException {
+        String wrongJsonWithoutAgeField = "{" +
+                "\"id\":123," +
+                "\"name\":\"Вася\"," +
+                "\"surname\":\"Пупкин\"," +
+                "\"address\":{" +
+                "\"id\":456," +
+                "\"country\":\"Россия\"," +
+                "\"city\":\"Москва\"," +
+                "\"number\":123," +
+                "\"street\":\"Пушкина\"}," +
+                "\"bankAccounts\":[" +
+                "{\"id\":789," +
+                "\"accountName\":\"Счет1\"," +
+                "\"cash\":12345},{" +
+                "\"id\":654," +
+                "\"accountName\":\"Счет2\"," +
+                "\"cash\":1234567}]}";
+        mapper.readValue(wrongJsonWithoutAgeField, User.class);
     }
 }

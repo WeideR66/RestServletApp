@@ -15,15 +15,17 @@ public class UserDAOImpl implements UserDAO {
     private final DBConnection dbConnection;
     private final AddressDAO addressDAO;
     private final BankAccountDAO bankAccountDAO;
+    private final UserMapper userMapper;
 
     public UserDAOImpl() {
-        this.dbConnection = DBConnectionImpl.createFactory();
+        this.dbConnection = DBConnectionImpl.createConnectionFactory();
         this.addressDAO = new AddressDAOImpl();
         this.bankAccountDAO = new BankAccountDAOImpl();
+        this.userMapper = new UserMapper();
     }
 
     @Override
-    public User createUser(User user) {
+    public void createUser(User user) throws SQLException {
         try (
                 Connection connection = dbConnection.getConnection();
                 Statement statement = connection.createStatement();
@@ -49,20 +51,17 @@ public class UserDAOImpl implements UserDAO {
             addressDAO.createAddress(user, statement);
 
             bankAccountDAO.createBankAccounts(user, statement);
-
-            return user;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public User getUserById(long id) {
+    public User getUserById(long id) throws SQLException {
         try (
                 Connection connection = dbConnection.getConnection();
                 Statement statement = connection.createStatement();
         ) {
-            String sql = String.format("select u.id, u.name, u.surname, u.age, a.id as address_id, a.country, a.city, a.street, a.number, b.id as bankaccount_id, b.accountname, b.cash " +
+            String sql = String.format("select u.id, u.name, u.surname, u.age, a.id as address_id, " +
+                            "a.country, a.city, a.street, a.number, b.id as bankaccount_id, b.accountname, b.cash " +
                             "from users as u " +
                             "left join addresses as a on u.id = a.user_id " +
                             "left join bankAccounts as b on u.id = b.user_id " +
@@ -70,15 +69,13 @@ public class UserDAOImpl implements UserDAO {
                     id);
 
             try (ResultSet result = statement.executeQuery(sql)) {
-                return UserMapper.getUserObjectFromResultSet(result);
+                return userMapper.getUserObjectFromResultSet(result);
             }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public User updateUser(User user) {
+    public User updateUser(User user) throws SQLException {
         if (user.getId() == null) {
             return null;
         }
@@ -105,25 +102,21 @@ public class UserDAOImpl implements UserDAO {
             bankAccountDAO.updateBankAccounts(user, statement);
 
             return user;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public boolean deleteUser(long id) {
+    public boolean deleteUser(long id) throws SQLException {
+        if (getUserById(id) == null) {
+            return false;
+        }
         try (
                 Connection connection = dbConnection.getConnection();
                 Statement statement = connection.createStatement();
         ) {
-            if (getUserById(id) == null) {
-                return false;
-            }
             String sql = String.format("delete from users where id = %d", id);
             statement.execute(sql);
             return true;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 }

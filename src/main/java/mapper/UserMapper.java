@@ -1,6 +1,5 @@
 package mapper;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import entities.Address;
 import entities.BankAccount;
@@ -13,9 +12,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class UserMapper {
-    private static final ObjectMapper jsonMapper = new ObjectMapper();
+    private final ObjectMapper jsonMapper = new ObjectMapper();
 
-    public static User getUserObjectFromResultSet(ResultSet resultSet) throws SQLException {
+    public User getUserObjectFromResultSet(ResultSet resultSet) throws SQLException {
         User user = new User();
         while (resultSet.next()) {
             if (user.getId() == null) {
@@ -42,19 +41,11 @@ public class UserMapper {
         return (user.getId() == null) ? null : user;
     }
 
-    public static User getUserObjectFromJSON(String json) throws JsonProcessingException {
-        return jsonMapper.readValue(json, User.class);
-    }
-
-    public static User getUserObjectFromJSON(BufferedReader reader) throws IOException {
+    public User getUserObjectFromJSON(BufferedReader reader) throws IOException {
         return jsonMapper.readValue(reader, User.class);
     }
 
-    public static String getJSONFromUserObject(User user) throws JsonProcessingException {
-        return jsonMapper.writeValueAsString(user);
-    }
-
-    public static void writeJSONFromUserObject(PrintWriter printWriter, User user) throws IOException {
+    public void writeJSONFromUserObject(PrintWriter printWriter, User user) throws IOException {
         jsonMapper.writeValue(printWriter, user);
     }
 }

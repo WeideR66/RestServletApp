@@ -1,9 +1,16 @@
 package dbconn;
 
+import dao.UserDAO;
+import dao.UserDAOImpl;
+import entities.Address;
+import entities.BankAccount;
+import entities.User;
+
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
 
-public class TableCreation {
+public class TableDataCreation {
     public static void createUserTable(Statement statement) throws SQLException {
         statement.execute("create table if not exists users (" +
                 "id bigserial primary key," +
@@ -48,5 +55,67 @@ public class TableCreation {
     public static void dropBankAccountsTable(Statement statement) throws SQLException {
         statement.execute("drop table if exists bankAccounts");
         System.out.println("Table bankAccounts dropped");
+    }
+
+    public static void createTestUsers() {
+        UserDAO userDAO = new UserDAOImpl();
+        User user1 = new User(
+                null,
+                "Вася",
+                "Пупкин",
+                21,
+                new Address(
+                        null,
+                        "Россия",
+                        "Москва",
+                        "Пушкина",
+                        6
+                ),
+                Arrays.asList(
+                        new BankAccount(null, "Счет№1", 100),
+                        new BankAccount(null, "Счет№2", 5736),
+                        new BankAccount(null, "Счет№3", 41235)
+                )
+        );
+        User user2 = new User(
+                null,
+                "Андрей",
+                "Тушенкин",
+                22,
+                new Address(
+                        null,
+                        "Россия",
+                        "Москва",
+                        "Тургенева",
+                        54
+                ),
+                Arrays.asList(
+                        new BankAccount(null, "Золотой Счет", 123455),
+                        new BankAccount(null, "Платиновый Счет", 173542)
+                )
+        );
+        User user3 = new User(
+                null,
+                "Игорь",
+                "Бесчетный",
+                23,
+                new Address(
+                        null,
+                        "Россия",
+                        "Омск",
+                        "Банковская",
+                        89
+                ),
+                null
+        );
+
+        try {
+            userDAO.createUser(user1);
+            userDAO.createUser(user2);
+            userDAO.createUser(user3);
+            System.out.println("Test Users created");
+        } catch (SQLException ignored) {
+
+        }
     }
 }

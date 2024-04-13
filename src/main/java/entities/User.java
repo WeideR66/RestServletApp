@@ -1,9 +1,7 @@
 package entities;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.extern.jackson.Jacksonized;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,11 +10,16 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Jacksonized
 public class User {
     private Long id;
+    @NonNull
     private String name;
+    @NonNull
     private String surname;
+    @NonNull
     private Integer age;
+    @NonNull
     private Address address;
     private List<BankAccount> bankAccounts;
 

@@ -1,51 +1,43 @@
 package servlets;
 
-import dao.UserDAO;
-import dao.UserDAOImpl;
-import entities.User;
+import exceptions.NoSuchUserException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import mapper.UserMapper;
+import services.UserService;
+import services.UserServiceImpl;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.SQLException;
 
 @WebServlet(name = "userServlet", urlPatterns = {"/api/user"})
 public class UserServlet extends HttpServlet {
 
-    private UserDAO userDAO = new UserDAOImpl();
+    private final UserService userService = new UserServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         PrintWriter out = resp.getWriter();
+        resp.setContentType("application/json");
 
         long userId;
         try {
             userId = Long.parseLong(req.getParameter("id"));
         } catch (NumberFormatException e) {
-            resp.setStatus(400);
-            out.print("{\"error\": \"Отсутствует Id пользователя\"}");
-            out.flush();
-            return;
-        }
-
-        User user = userDAO.getUserById(userId);
-        if (user == null) {
-            resp.setStatus(404);
-            out.print("{\"error\": \"Пользователь не найден\"}");
-            out.flush();
+            sendError(400, "Отсутствует ID пользователя", out, resp);
             return;
         }
 
         try {
-            UserMapper.writeJSONFromUserObject(out, user);
-            out.flush();
-        } catch (IOException e) {
-            resp.setStatus(500);
-            out.print("{\"error\": \"Ошибка сериализации JSON, ИЗВИНИТЕ!!!\"}");
+            userService.getUser(userId, out);
+        } catch (NoSuchUserException e1) {
+            sendError(404, e1.getMessage(), out, resp);
+        } catch (IOException | SQLException e2) {
+            sendError(500, "Внутренняя ошибка сервера", out, resp);
+        } finally {
             out.flush();
         }
 
@@ -54,16 +46,15 @@ public class UserServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         PrintWriter out = resp.getWriter();
+        resp.setContentType("application/json");
 
-        User user;
         try {
-            user = UserMapper.getUserObjectFromJSON(req.getReader());
-            userDAO.createUser(user);
-            UserMapper.writeJSONFromUserObject(out, user);
-            out.flush();
-        } catch (IOException e) {
-            resp.setStatus(400);
-            out.print("{\"error\": \"Неверный формат пользователя\"}");
+            userService.createUser(req.getReader(), out);
+        } catch (IOException e1) {
+            sendError(400, "Неверный формат User JSON", out, resp);
+        } catch (SQLException e2) {
+            sendError(500, "Внутренняя ошибка сервера", out, resp);
+        } finally {
             out.flush();
         }
 
@@ -81,16 +72,17 @@ public class UserServlet extends HttpServlet {
 
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         PrintWriter out = resp.getWriter();
+        resp.setContentType("application/json");
 
-        User user;
         try {
-            user = UserMapper.getUserObjectFromJSON(req.getReader());
-            userDAO.updateUser(user);
-            UserMapper.writeJSONFromUserObject(out, user);
-            out.flush();
-        } catch (IOException e) {
-            resp.setStatus(400);
-            out.print("{\"error\": \"Неверный формат пользователя\"}");
+            userService.updateUser(req.getReader(), out);
+        } catch (NoSuchUserException e1) {
+            sendError(404, e1.getMessage(), out, resp);
+        } catch (IOException e2) {
+            sendError(400, "Неверный формат User JSON", out, resp);
+        } catch (SQLException e3) {
+            sendError(500, "Внутренняя ошибка сервера", out, resp);
+        } finally {
             out.flush();
         }
     }
@@ -98,26 +90,29 @@ public class UserServlet extends HttpServlet {
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         PrintWriter out = resp.getWriter();
+        resp.setContentType("application/json");
 
         long userId;
         try {
             userId = Long.parseLong(req.getParameter("id"));
         } catch (NumberFormatException e) {
-            resp.setStatus(400);
-            out.print("{\"error\": \"Отсутствует Id пользователя\"}");
-            out.flush();
+            sendError(400, "Отсутствует ID пользователя", out, resp);
             return;
         }
 
-        boolean result = userDAO.deleteUser(userId);
-        if (result) {
-            resp.setStatus(200);
-            out.print("{\"message\": \"Пользователь удален\"}");
-            out.flush();
-        } else {
-            resp.setStatus(404);
-            out.print("{\"error\": \"Пользователь отсутствует\"}");
+        try {
+            userService.deleteUser(userId, out);
+        } catch (NoSuchUserException e1) {
+            sendError(404, e1.getMessage(), out, resp);
+        } catch (SQLException | IOException e2) {
+            sendError(500, "Внутренняя ошибка сервера", out, resp);
+        } finally {
             out.flush();
         }
+    }
+
+    private void sendError(int status, String error, PrintWriter out, HttpServletResponse resp) {
+        resp.setStatus(status);
+        out.print(String.format("{\"error\":\"%s\"}", error));
     }
 }

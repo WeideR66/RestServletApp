@@ -8,17 +8,6 @@ import static org.junit.Assert.*;
 public class AddressEntityTest {
 
     @Test
-    public void whenCreateAddressWithEmptyConstructorThenAllFieldsAreNull() {
-        Address address = new Address();
-
-        assertNull(address.getId());
-        assertNull(address.getCountry());
-        assertNull(address.getCity());
-        assertNull(address.getStreet());
-        assertNull(address.getNumber());
-    }
-
-    @Test
     public void whenCreateAddressWithFullConstructorThenAllFieldsAreNotNull() {
         Address address = new Address(
                 123L,
@@ -39,5 +28,10 @@ public class AddressEntityTest {
         assertEquals("Москва", address.getCity());
         assertEquals("Пушкина", address.getStreet());
         assertEquals(Integer.valueOf(123), address.getNumber());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void whenNonNullFieldIsNullThenNullPointerExceptionThrow() {
+        new Address(null, "Russia", "Moscow", null, 4);
     }
 }

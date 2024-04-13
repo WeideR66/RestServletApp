@@ -1,8 +1,7 @@
 package dao;
 
-import dbconn.DBConnection;
 import dbconn.DBConnectionImpl;
-import dbconn.TableCreation;
+import dbconn.TableDataCreation;
 import entities.Address;
 import entities.BankAccount;
 import entities.User;
@@ -17,19 +16,18 @@ import static org.junit.Assert.*;
 
 public class UserDAOImplTest {
 
-    private final DBConnection dbConnection = DBConnectionImpl.createFactory();
     private final UserDAO userDAO = new UserDAOImpl();
     private User user;
 
     @BeforeClass
     public static void setUp() throws Exception {
         try (
-                Connection connection = DBConnectionImpl.createFactory().getConnection();
+                Connection connection = DBConnectionImpl.createConnectionFactory().getConnection();
                 Statement statement = connection.createStatement();
         ) {
-            TableCreation.createUserTable(statement);
-            TableCreation.createAddressTable(statement);
-            TableCreation.createBankAccountsTable(statement);
+            TableDataCreation.createUserTable(statement);
+            TableDataCreation.createAddressTable(statement);
+            TableDataCreation.createBankAccountsTable(statement);
         } catch (SQLException e) {
             throw new SQLException(e);
         }
@@ -51,7 +49,7 @@ public class UserDAOImplTest {
     }
 
     @Test
-    public void whenUseCreateUserThenUserAddInDB() {
+    public void whenUseCreateUserThenUserAddInDB() throws Exception {
         userDAO.createUser(user);
 
         User actualUser = userDAO.getUserById(user.getId());
@@ -60,13 +58,13 @@ public class UserDAOImplTest {
     }
 
     @Test
-    public void returnNullIfUserDoesNotExist() {
+    public void returnNullIfUserDoesNotExist() throws Exception {
         User user = userDAO.getUserById(31L);
         assertNull(user);
     }
 
     @Test
-    public void whenChangeUserFieldAndExecuteUpdateUserDataInDBChange() {
+    public void whenChangeUserFieldAndExecuteUpdateUserDataInDBChange() throws Exception {
         userDAO.createUser(user);
         user.setName("Андрей");
         user.getAddress().setStreet("Заборная");
@@ -79,7 +77,7 @@ public class UserDAOImplTest {
     }
 
     @Test
-    public void whenUserIsNotChangedThenUpdateUserDoNotChangeValuesInDB() {
+    public void whenUserIsNotChangedThenUpdateUserDoNotChangeValuesInDB() throws Exception {
         userDAO.createUser(user);
 
         User pseudoUpdatedUser = userDAO.updateUser(user);
@@ -88,14 +86,14 @@ public class UserDAOImplTest {
     }
 
     @Test
-    public void whenUserIdIsNullTHenUpdateUserReturnNull() {
+    public void whenUserIdIsNullTHenUpdateUserReturnNull() throws Exception {
         User updatedUser = userDAO.updateUser(user);
 
         assertNull(updatedUser);
     }
 
     @Test
-    public void ifUserInDBTHenDeleteUserWillRemoveUserFromDB() {
+    public void ifUserInDBTHenDeleteUserWillRemoveUserFromDB() throws Exception {
         userDAO.createUser(user);
 
         assertEquals(userDAO.getUserById(user.getId()), user);
@@ -108,12 +106,12 @@ public class UserDAOImplTest {
     @AfterClass
     public static void tearDown() throws Exception {
         try (
-                Connection connection = DBConnectionImpl.createFactory().getConnection();
+                Connection connection = DBConnectionImpl.createConnectionFactory().getConnection();
                 Statement statement = connection.createStatement();
         ) {
-            TableCreation.dropBankAccountsTable(statement);
-            TableCreation.dropAddressTable(statement);
-            TableCreation.dropUserTable(statement);
+            TableDataCreation.dropBankAccountsTable(statement);
+            TableDataCreation.dropAddressTable(statement);
+            TableDataCreation.dropUserTable(statement);
         } catch (SQLException e) {
             throw new SQLException(e);
         }

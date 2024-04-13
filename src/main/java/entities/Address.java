@@ -1,19 +1,21 @@
 package entities;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.extern.jackson.Jacksonized;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Jacksonized
 public class Address {
     private Long id;
+    @NonNull
     private String country;
+    @NonNull
     private String city;
+    @NonNull
     private String street;
+    @NonNull
     private Integer number;
 }

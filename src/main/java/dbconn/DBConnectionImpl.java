@@ -1,8 +1,10 @@
 package dbconn;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Properties;
 
 public class DBConnectionImpl implements DBConnection {
     private final String url;
@@ -10,9 +12,16 @@ public class DBConnectionImpl implements DBConnection {
     private final String password;
 
     private DBConnectionImpl() {
-        this.url = "jdbc:postgresql://localhost:5432/testDB";
-        this.username = "admin";
-        this.password = "1234567890";
+        try {
+            ClassLoader loader = Thread.currentThread().getContextClassLoader();
+            Properties dbProperties = new Properties();
+            dbProperties.load(loader.getResourceAsStream("db.properties"));
+            this.url = dbProperties.getProperty("url", "jdbc:postgresql://localhost:5432/testDB");
+            this.username = dbProperties.getProperty("username", "admin");
+            this.password = dbProperties.getProperty("password", "1234567890");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private DBConnectionImpl(String url, String username, String password) {
@@ -21,11 +30,11 @@ public class DBConnectionImpl implements DBConnection {
         this.password = password;
     }
 
-    public static DBConnectionImpl createFactory() {
+    public static DBConnectionImpl createConnectionFactory() {
         return new DBConnectionImpl();
     }
 
-    public static DBConnectionImpl createFactory(String url, String username, String password) {
+    public static DBConnectionImpl createConnectionFactory(String url, String username, String password) {
         return new DBConnectionImpl(url, username, password);
     }
 
