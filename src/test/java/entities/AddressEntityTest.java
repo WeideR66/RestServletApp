@@ -17,7 +17,7 @@ public class AddressEntityTest {
                 123
         );
 
-        assertNotNull(address.getId());
+        assertNotNull(address.getId()); // несколько ассертов надо пихать в assertAll
         assertNotNull(address.getCountry());
         assertNotNull(address.getCity());
         assertNotNull(address.getStreet());
